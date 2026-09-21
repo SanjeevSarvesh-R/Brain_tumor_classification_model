@@ -1,0 +1,13 @@
+Training/
+Testing/
+
+__pycache__/
+*.pyc
+
+.ipynb_checkpoints/
+
+.vscode/
+.idea/
+
+.env
+*.log
