@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Classifier</title>
+    <meta name="description" content="AI-powered brain MRI tumor classification using DenseNet121">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- Background particles -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <div class="page-wrapper">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">🧠</span>
+                <span class="logo-text">NeuroScan <span class="logo-ai">AI</span></span>
+            </div>
+            <div class="status-badge" id="statusBadge">
+                <span class="status-dot"></span>
+                <span id="statusText">Connecting...</span>
+            </div>
+        </header>
+
+        <!-- Main content -->
+        <main class="main">
+
+            <!-- Hero section -->
+            <section class="hero">
+                <h1 class="hero-title">Brain Tumor <span class="gradient-text">Classification</span></h1>
+                <p class="hero-subtitle">Upload a brain MRI scan and get an instant AI-powered diagnosis powered by DenseNet121 + MONAI</p>
+                <div class="model-tags">
+                    <span class="tag">🤖 DenseNet121</span>
+                    <span class="tag">🏥 MONAI</span>
+                    <span class="tag">⚡ PyTorch</span>
+                    <span class="tag">📊 87.38% Accuracy</span>
+                </div>
+            </section>
+
+            <!-- Upload Card -->
+            <div class="card upload-card">
+                <div class="card-inner">
+
+                    <!-- Upload zone -->
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-icon-wrap" id="uploadIconWrap">
+                            <div class="upload-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                            </div>
+                            <p class="upload-label">Drop your MRI scan here</p>
+                            <p class="upload-sublabel">or click to browse files</p>
+                            <p class="upload-formats">Supported: JPG, JPEG, PNG</p>
+                        </div>
+                        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png" hidden>
+
+                        <!-- Image preview (shown after selection) -->
+                        <div class="preview-wrap" id="previewWrap" style="display:none">
+                            <img id="previewImg" alt="MRI Preview">
+                            <div class="preview-overlay">
+                                <span class="preview-filename" id="previewFilename"></span>
+                                <button class="change-btn" id="changeBtn">Change Image</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Predict button -->
+                    <button class="predict-btn" id="predictBtn" disabled>
+                        <span class="btn-icon">🔍</span>
+                        <span class="btn-text">Analyze MRI Scan</span>
+                        <div class="btn-loader" id="btnLoader" style="display:none"></div>
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- Result Card (shown after prediction) -->
+            <div class="card result-card" id="resultCard" style="display:none">
+
+                <div class="result-header">
+                    <h2 class="result-title">Analysis Complete</h2>
+                    <span class="result-timestamp" id="resultTimestamp"></span>
+                </div>
+
+                <!-- Main prediction -->
+                <div class="prediction-main" id="predictionMain">
+                    <div class="prediction-icon" id="predictionIcon"></div>
+                    <div class="prediction-info">
+                        <div class="prediction-label">Detected Condition</div>
+                        <div class="prediction-value" id="predictionValue"></div>
+                    </div>
+                    <div class="confidence-wrap">
+                        <div class="confidence-label">Confidence</div>
+                        <div class="confidence-value" id="confidenceValue"></div>
+                    </div>
+                </div>
+
+                <!-- Confidence bar -->
+                <div class="confidence-bar-wrap">
+                    <div class="confidence-bar-track">
+                        <div class="confidence-bar-fill" id="confidenceFill"></div>
+                    </div>
+                </div>
+
+                <!-- All class probabilities -->
+                <div class="probabilities">
+                    <h3 class="prob-title">All Class Probabilities</h3>
+                    <div class="prob-list" id="probList"></div>
+                </div>
+
+                <!-- Disclaimer -->
+                <div class="disclaimer">
+                    ⚠️ <strong>Educational use only.</strong> This AI prediction is not a medical diagnosis. Always consult a qualified medical professional.
+                </div>
+
+            </div>
+
+            <!-- Info cards -->
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-icon">🎯</div>
+                    <div class="info-title">4 Classes</div>
+                    <div class="info-desc">Glioma, Meningioma, Pituitary, No Tumor</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">📊</div>
+                    <div class="info-title">87.38% Accuracy</div>
+                    <div class="info-desc">Tested on 1,600 MRI images</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">⚡</div>
+                    <div class="info-title">Real-time</div>
+                    <div class="info-desc">Instant predictions locally on your machine</div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="footer">
+            <p>Built with ❤️ using MONAI + PyTorch + FastAPI &nbsp;|&nbsp; Educational Project</p>
+        </footer>
+
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 from PIL import Image
@@ -5,8 +6,8 @@ from monai.networks.nets import DenseNet121
 
 
 
-
-MODEL_PATH = "best_brain_tumor_monai.pth"
+# Use absolute path so it works from any working directory
+MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "best_brain_tumor_monai.pth")
 
 IMAGE_SIZE = (224, 224)
 
