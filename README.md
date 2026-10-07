@@ -7,7 +7,10 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 <p align="center">
-  <img src="assets/05.png" alt="BrainVerse Platform Preview" width="100%">
+  <img src="assets/05.png" alt="BrainVerse Clinical Landing Page" width="100%">
+</p>
+<p align="center">
+  <img src="assets/06.png" alt="BrainVerse Diagnostic Analysis Workspace" width="100%">
 </p>
 
 **BrainVerse** is an end-to-end, clinical-grade deep learning web application designed for automated brain tumor classification from magnetic resonance imaging (MRI) scans. Built using **MONAI** (Medical Open Network for AI) and **DenseNet121**, the system classifies axial/coronal/sagittal T1/T2 MRI scans into four diagnostic categories in real time.
@@ -19,9 +22,6 @@ The application pairs a high-performance **FastAPI** backend with a responsive h
 ## 📑 Table of Contents
 
 - [System Architecture](#-system-architecture)
-- [Platform Interface Preview](#-platform-interface-preview)
-  - [Clinical Landing Page (assets/05.png)](#clinical-landing-page)
-  - [Diagnostic Analysis Workspace (assets/06.png)](#diagnostic-analysis-workspace)
 - [Diagnostic Target Classes](#-diagnostic-target-classes)
 - [Detailed Implementation Breakdown](#-detailed-implementation-breakdown)
   - [1. Machine Learning Engine (MONAI + DenseNet121)](#1-machine-learning-engine-monai--densenet121)
@@ -106,26 +106,6 @@ flowchart TD
     PredictEP -->|HTTP 200 JSON| Results
     Results --> UI
 ```
-
----
-
-## 🖥️ Platform Interface Preview
-
-### Clinical Landing Page
-The institutional healthcare portal landing page featuring Netmeds-inspired dual-tier navigation (`#23CBAF` seafoam teal top tier, `#237A73` forest teal category tier), official BrainVerse emblem logo (`04.png`), clinical search pill, user authentication action, and the 3-second auto-cycling MRI hero carousel:
-
-<p align="center">
-  <img src="assets/05.png" alt="BrainVerse Clinical Landing Page" width="100%">
-</p>
-
----
-
-### Diagnostic Analysis Workspace
-The interactive clinical analysis environment showcasing drag-and-drop MRI scan ingestion, live thumbnail preview, automated DenseNet121 deep learning inference, risk-stratified confidence telemetry, and multiclass probability distribution breakdown:
-
-<p align="center">
-  <img src="assets/06.png" alt="BrainVerse Diagnostic Analysis Workspace" width="100%">
-</p>
 
 ---
 
