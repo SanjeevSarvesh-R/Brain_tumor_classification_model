@@ -15,6 +15,9 @@ The application pairs a high-performance **FastAPI** backend with a responsive h
 ## 📑 Table of Contents
 
 - [System Architecture](#-system-architecture)
+- [Platform Interface Preview](#-platform-interface-preview)
+  - [Clinical Landing Page (assets/05.png)](#clinical-landing-page)
+  - [Diagnostic Analysis Workspace (assets/06.png)](#diagnostic-analysis-workspace)
 - [Diagnostic Target Classes](#-diagnostic-target-classes)
 - [Detailed Implementation Breakdown](#-detailed-implementation-breakdown)
   - [1. Machine Learning Engine (MONAI + DenseNet121)](#1-machine-learning-engine-monai--densenet121)
@@ -102,6 +105,26 @@ flowchart TD
 
 ---
 
+## 🖥️ Platform Interface Preview
+
+### Clinical Landing Page
+The institutional healthcare portal landing page featuring Netmeds-inspired dual-tier navigation (`#23CBAF` seafoam teal top tier, `#237A73` forest teal category tier), official BrainVerse emblem logo (`04.png`), clinical search pill, user authentication action, and the 3-second auto-cycling MRI hero carousel:
+
+<p align="center">
+  <img src="assets/05.png" alt="BrainVerse Clinical Landing Page" width="100%">
+</p>
+
+---
+
+### Diagnostic Analysis Workspace
+The interactive clinical analysis environment showcasing drag-and-drop MRI scan ingestion, live thumbnail preview, automated DenseNet121 deep learning inference, risk-stratified confidence telemetry, and multiclass probability distribution breakdown:
+
+<p align="center">
+  <img src="assets/06.png" alt="BrainVerse Diagnostic Analysis Workspace" width="100%">
+</p>
+
+---
+
 ## 🎯 Diagnostic Target Classes
 
 The classifier evaluates brain scans across four distinct pathological states:
@@ -169,14 +192,14 @@ The backend is built on **FastAPI** (`backend/main.py`) running on the **Uvicorn
 The frontend (`frontend/index.html`, `frontend/style.css`, `frontend/script.js`) provides an institutional healthcare design system:
 
 - **Dual-Tier Healthcare Navigation**:
-  - **Tier 1 (Top Bar - `#23CBAF` Seafoam Teal)**: Houses the official BrainVerse branding with `04.png` emblem, clinical search pill, and a secure "Sign In" portal option.
+  - **Tier 1 (Top Bar - `#23CBAF` Seafoam Teal)**: Houses the official BrainVerse branding with `04.png` emblem, clinical search pill, and a secure "Sign In" portal option *(previewed in [`assets/05.png`](assets/05.png))*.
   - **Tier 2 (Category Navigation - `#237A73` Forest Teal)**: Deep-link anchors (`About BrainVerse`, `Technology`, `Performance`, `How It Works`, `Clinical Protocol`) and a prominent "Analyze MRI →" CTA.
-- **Hero Carousel**: Automatic 3-second rotating background carousel displaying clinical MRI scenarios with telemetry captions.
-- **Interactive Drag-and-Drop Zone**: Client-side drag-over and change handlers supporting JPEG, PNG, and WebP scans with live thumbnail preview.
+- **Hero Carousel**: Automatic 3-second rotating background carousel displaying clinical MRI scenarios with telemetry captions *(previewed in [`assets/05.png`](assets/05.png))*.
+- **Interactive Drag-and-Drop Zone**: Client-side drag-over and change handlers supporting JPEG, PNG, and WebP scans with live thumbnail preview *(previewed in [`assets/06.png`](assets/06.png))*.
 - **Diagnostic Results Rendering**:
   - Main diagnostic badge displaying the top predicted class.
   - Large-format confidence gauge percentage with color-coded risk indicators.
-  - Interactive probability distribution breakdown for all four tumor categories.
+  - Interactive probability distribution breakdown for all four tumor categories *(previewed in [`assets/06.png`](assets/06.png))*.
 - **Clinical Advisory Strip & Modal**: Persistent clinical disclaimer advising users that predictions are intended for research and education.
 
 ### 5. Containerization & Deployment
@@ -213,13 +236,17 @@ Brain_tumor_classification_model/
 │       ├── 01.jpg
 │       ├── 02.webp
 │       ├── 03.webp
-│       └── 04.png                  # Official BrainVerse emblem logo
+│       ├── 04.png                  # Official BrainVerse emblem logo
+│       ├── 05.png                  # UI Screenshot: Clinical Landing & Navigation
+│       └── 06.png                  # UI Screenshot: Diagnostic Workspace & Results
 │
 ├── assets/                         # Global asset directory (mounted by backend)
 │   ├── 01.jpg
 │   ├── 02.webp
 │   ├── 03.webp
-│   └── 04.png
+│   ├── 04.png                      # Official BrainVerse emblem logo
+│   ├── 05.png                      # UI Screenshot: Clinical Landing & Navigation
+│   └── 06.png                      # UI Screenshot: Diagnostic Workspace & Results
 │
 ├── model.py                        # DenseNet121 architecture & inference preprocessing
 ├── train.py                        # MONAI training pipeline script
