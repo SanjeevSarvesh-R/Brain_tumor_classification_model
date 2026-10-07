@@ -6,6 +6,10 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+<p align="center">
+  <img src="assets/05.png" alt="BrainVerse Platform Preview" width="100%">
+</p>
+
 **BrainVerse** is an end-to-end, clinical-grade deep learning web application designed for automated brain tumor classification from magnetic resonance imaging (MRI) scans. Built using **MONAI** (Medical Open Network for AI) and **DenseNet121**, the system classifies axial/coronal/sagittal T1/T2 MRI scans into four diagnostic categories in real time.
 
 The application pairs a high-performance **FastAPI** backend with a responsive healthcare portal frontend inspired by institutional medical platforms, complete with full **Docker** and **Docker Compose** containerization (supporting both CPU and NVIDIA GPU acceleration).
