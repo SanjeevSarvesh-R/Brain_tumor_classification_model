@@ -36,18 +36,30 @@ LEARNING_RATE = 0.0001
 RANDOM_STATE = 42
 
 
-device = torch.device(
-    "cuda" if torch.cuda.is_available() else "cpu"
-)
+if not torch.cuda.is_available():
+    raise RuntimeError(
+        "CUDA is not available. PyTorch cannot access your NVIDIA GPU. "
+        "Install a CUDA-enabled PyTorch version before training."
+    )
 
+device = torch.device("cuda")
 
 print("=" * 60)
 print("BRAIN TUMOR CLASSIFICATION - MONAI")
 print("=" * 60)
 
 print("PyTorch version:", torch.__version__)
-print("MONAI model: DenseNet121")
+print("CUDA available:", torch.cuda.is_available())
+print("CUDA version:", torch.version.cuda)
 print("Device:", device)
+print("GPU:", torch.cuda.get_device_name(0))
+
+gpu_properties = torch.cuda.get_device_properties(0)
+
+print(
+    f"GPU Memory: "
+    f"{gpu_properties.total_memory / (1024 ** 3):.2f} GB"
+)
 
 
 classes = [
@@ -230,7 +242,8 @@ train_loader = DataLoader(
     train_dataset,
     batch_size=BATCH_SIZE,
     shuffle=True,
-    num_workers=0
+    num_workers=0,
+    pin_memory=True
 )
 
 
@@ -238,7 +251,8 @@ validation_loader = DataLoader(
     validation_dataset,
     batch_size=BATCH_SIZE,
     shuffle=False,
-    num_workers=0
+    num_workers=0,
+    pin_memory=True
 )
 
 
@@ -259,7 +273,7 @@ sample_labels = sample_batch["label"]
 print(
     "Batch image shape:",
     sample_images.shape
-),
+)
 
 print(
     "Batch label shape:",
@@ -305,6 +319,11 @@ model = model.to(device)
 
 print("\nMONAI DenseNet121 created successfully.")
 
+print(
+    "Model device:",
+    next(model.parameters()).device
+)
+
 
 loss_function = torch.nn.CrossEntropyLoss()
 
@@ -344,39 +363,56 @@ for epoch in range(EPOCHS):
 
     for batch in train_progress:
 
-        images = batch["image"].to(device)
+        images = batch["image"].to(
+            device,
+            non_blocking=True
+        )
 
-        labels = batch["label"].to(device)
+        labels = batch["label"].to(
+            device,
+            non_blocking=True
+        )
+
 
         optimizer.zero_grad()
 
+
         outputs = model(images)
+
 
         loss = loss_function(
             outputs,
             labels
         )
 
+
         loss.backward()
 
         optimizer.step()
 
+
         total_train_loss += loss.item()
+
 
         predictions = torch.argmax(
             outputs,
             dim=1
         )
 
+
         correct_train += (
             predictions == labels
         ).sum().item()
 
+
         total_train += labels.size(0)
 
+
         current_accuracy = (
-            correct_train / total_train
+            correct_train /
+            total_train
         ) * 100
+
 
         train_progress.set_postfix(
             loss=f"{loss.item():.4f}",
@@ -389,6 +425,7 @@ for epoch in range(EPOCHS):
         len(train_loader)
     )
 
+
     train_accuracy = (
         correct_train /
         total_train
@@ -396,6 +433,7 @@ for epoch in range(EPOCHS):
 
 
     model.eval()
+
 
     total_validation_loss = 0.0
 
@@ -415,34 +453,48 @@ for epoch in range(EPOCHS):
 
         for batch in validation_progress:
 
-            images = batch["image"].to(device)
+            images = batch["image"].to(
+                device,
+                non_blocking=True
+            )
 
-            labels = batch["label"].to(device)
+            labels = batch["label"].to(
+                device,
+                non_blocking=True
+            )
+
 
             outputs = model(images)
+
 
             loss = loss_function(
                 outputs,
                 labels
             )
 
+
             total_validation_loss += loss.item()
+
 
             predictions = torch.argmax(
                 outputs,
                 dim=1
             )
 
+
             correct_validation += (
                 predictions == labels
             ).sum().item()
 
+
             total_validation += labels.size(0)
+
 
             current_validation_accuracy = (
                 correct_validation /
                 total_validation
             ) * 100
+
 
             validation_progress.set_postfix(
                 loss=f"{loss.item():.4f}",
@@ -455,6 +507,7 @@ for epoch in range(EPOCHS):
         len(validation_loader)
     )
 
+
     validation_accuracy = (
         correct_validation /
         total_validation
@@ -464,24 +517,29 @@ for epoch in range(EPOCHS):
     print("\n")
     print("-" * 60)
 
+
     print(
         f"Epoch {epoch + 1}/{EPOCHS} COMPLETED"
     )
+
 
     print(
         f"Training Loss: "
         f"{average_train_loss:.4f}"
     )
 
+
     print(
         f"Training Accuracy: "
         f"{train_accuracy * 100:.2f}%"
     )
 
+
     print(
         f"Validation Loss: "
         f"{average_validation_loss:.4f}"
     )
+
 
     print(
         f"Validation Accuracy: "
@@ -493,10 +551,12 @@ for epoch in range(EPOCHS):
 
         best_validation_accuracy = validation_accuracy
 
+
         torch.save(
             model.state_dict(),
             "best_brain_tumor_monai.pth"
         )
+
 
         print("Best model saved!")
 
@@ -506,10 +566,13 @@ print("=" * 60)
 print("TRAINING COMPLETE")
 print("=" * 60)
 
+
 print(
     f"Best Validation Accuracy: "
     f"{best_validation_accuracy * 100:.2f}%"
 )
 
+
 print("\nModel saved as:")
+
 print("best_brain_tumor_monai.pth")

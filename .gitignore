@@ -1,13 +1,26 @@
+# Datasets and Archives
 Training/
 Testing/
+*.zip
+*.tar.gz
 
+# Python cache and environments
 __pycache__/
 *.pyc
+.env
+venv/
+.venv/
+env/
 
-.ipynb_checkpoints/
-
+# IDE and OS files
 .vscode/
 .idea/
-
-.env
+.DS_Store
+Thumbs.db
 *.log
+
+# Scratch / unrelated files
+midem.py
+
+# (Optional: Uncomment below if you host model weights on GitHub Releases instead of git directly)
+# *.pth
