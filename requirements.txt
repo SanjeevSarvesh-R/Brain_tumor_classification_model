@@ -1,7 +1,16 @@
-torch>=2.0.0
-torchvision>=0.15.0
-monai>=1.2.0
-numpy>=1.23.0
-Pillow>=9.0.0
-scikit-learn>=1.2.0
-tqdm>=4.65.0
+# Core ML — pinned to match the trained model environment
+torch==2.14.1
+torchvision==0.29.1
+monai==1.6.1
+numpy==2.5.3
+Pillow==12.3.0
+scikit-learn==1.9.1
+
+# Web server
+fastapi==0.142.2
+uvicorn==0.54.0
+starlette==1.7.0
+python-multipart==0.0.32
+
+# Utilities
+tqdm==4.70.1

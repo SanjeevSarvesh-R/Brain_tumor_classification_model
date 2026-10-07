@@ -32,6 +32,10 @@ frontend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__f
 if os.path.exists(frontend_path):
     app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
+assets_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
+if os.path.exists(assets_path):
+    app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
+
 # Load model once when server starts (not on every request)
 print("\n" + "=" * 50)
 print("BRAIN TUMOR CLASSIFIER - API SERVER")

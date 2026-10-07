@@ -3,153 +3,683 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brain Tumor Classifier</title>
-    <meta name="description" content="AI-powered brain MRI tumor classification using DenseNet121">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>BrainVerse — Brain MRI Classification & Deep Learning Analysis</title>
+    <meta name="description" content="BrainVerse is an institutional healthcare deep learning platform classifying brain MRI scans across four diagnostic categories using MONAI and DenseNet121.">
+    
+    <!-- Google Fonts: Editorial Serif + Clean Healthcare Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-    <!-- Background particles -->
-    <div class="bg-orb orb-1"></div>
-    <div class="bg-orb orb-2"></div>
-    <div class="bg-orb orb-3"></div>
+    <!-- Top Utility & Header (Clinical Dual-Tier Navigation) -->
+    <header class="site-header" id="header">
+        
+        <!-- Tier 1: Brand Wordmark, Search Pill & Sign In Option -->
+        <div class="nav-tier-top">
+            <div class="container top-tier-container">
+                <a href="#" class="brand-wordmark" aria-label="BrainVerse Home">
+                    <img src="/static/assets/04.png" alt="BrainVerse Logo" class="brand-logo-img">
+                    <span class="brand-title">BRAIN<span class="brand-title-accent">VERSE</span></span>
+                </a>
 
-    <div class="page-wrapper">
-
-        <!-- Header -->
-        <header class="header">
-            <div class="logo">
-                <span class="logo-icon">🧠</span>
-                <span class="logo-text">NeuroScan <span class="logo-ai">AI</span></span>
-            </div>
-            <div class="status-badge" id="statusBadge">
-                <span class="status-dot"></span>
-                <span id="statusText">Connecting...</span>
-            </div>
-        </header>
-
-        <!-- Main content -->
-        <main class="main">
-
-            <!-- Hero section -->
-            <section class="hero">
-                <h1 class="hero-title">Brain Tumor <span class="gradient-text">Classification</span></h1>
-                <p class="hero-subtitle">Upload a brain MRI scan and get an instant AI-powered diagnosis powered by DenseNet121 + MONAI</p>
-                <div class="model-tags">
-                    <span class="tag">🤖 DenseNet121</span>
-                    <span class="tag">🏥 MONAI</span>
-                    <span class="tag">⚡ PyTorch</span>
-                    <span class="tag">📊 87.38% Accuracy</span>
+                <!-- Clinical Search Pill (Rounded Medical Search Bar) -->
+                <div class="search-pill-wrapper" role="search">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" class="search-pill-input" placeholder="Search MRI classes, pathology, specifications..." aria-label="Search site information">
                 </div>
-            </section>
 
-            <!-- Upload Card -->
-            <div class="card upload-card">
-                <div class="card-inner">
+                <!-- Utility Actions: Sign In option (API docs and status badge removed per request) -->
+                <div class="top-tier-actions">
+                    <a href="#signin" class="tier-signin-btn" id="signInBtn" aria-label="Sign In">
+                        <svg class="signin-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>Sign In</span>
+                    </a>
+                    <!-- Headless telemetry element preserved for background health polling without DOM errors -->
+                    <div class="system-status-chip" id="statusBadge" role="status" aria-live="polite" style="display: none;">
+                        <span class="status-dot"></span>
+                        <span class="status-text" id="statusText">Checking system...</span>
+                    </div>
+                </div>
 
-                    <!-- Upload zone -->
-                    <div class="upload-zone" id="uploadZone">
-                        <div class="upload-icon-wrap" id="uploadIconWrap">
-                            <div class="upload-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                    <polyline points="17 8 12 3 7 8"/>
-                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                <!-- Mobile Menu Button -->
+                <button class="mobile-menu-btn" id="mobileToggle" aria-label="Open mobile navigation menu" aria-expanded="false">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tier 2: Category Navigation & Direct CTA -->
+        <div class="nav-tier-bottom">
+            <div class="container bottom-tier-container">
+                <nav class="category-nav" id="categoryNav" aria-label="Primary Navigation">
+                    <a href="#about" class="cat-nav-link">About BrainVerse</a>
+                    <a href="#technology" class="cat-nav-link">Technology &amp; Architecture</a>
+                    <a href="#performance" class="cat-nav-link">Model Performance</a>
+                    <a href="#how-it-works" class="cat-nav-link">How It Works</a>
+                    <a href="#protocol" class="cat-nav-link">Clinical Protocol</a>
+                </nav>
+                <div class="nav-cta-wrapper">
+                    <a href="#analyze" class="btn btn-pill-primary">Analyze MRI &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer -->
+        <div class="mobile-drawer" id="mobileDrawer">
+            <a href="#about" class="mobile-link">About BrainVerse</a>
+            <a href="#technology" class="mobile-link">Technology &amp; Architecture</a>
+            <a href="#performance" class="mobile-link">Model Performance</a>
+            <a href="#how-it-works" class="mobile-link">How It Works</a>
+            <a href="#protocol" class="mobile-link">Clinical Protocol</a>
+            <a href="#signin" class="mobile-link" id="mobileSignInLink">Sign In</a>
+            <a href="#analyze" class="btn btn-pill-primary mobile-cta">Analyze an MRI &rarr;</a>
+        </div>
+    </header>
+
+    <main id="main">
+
+        <!-- Hero Section: Inspired by Mayo Clinic's Editorial Hero with 3s Image Carousel -->
+        <section class="mayo-hero-banner" id="hero">
+            <!-- Full Hero Background Carousel (3s Auto-cycle) -->
+            <div class="hero-bg-carousel" id="heroBgCarousel" aria-hidden="true">
+                <div class="bg-slide active" style="background-image: url('/static/assets/01.jpg');"></div>
+                <div class="bg-slide" style="background-image: url('/static/assets/02.webp');"></div>
+                <div class="bg-slide" style="background-image: url('/static/assets/03.webp');"></div>
+            </div>
+            <!-- Low-thickness Gradient Overlay for high image density & clear contrast -->
+            <div class="hero-bg-gradient-overlay"></div>
+
+            <div class="container hero-banner-content">
+                <div class="hero-text-block">
+                    <div class="hero-eyebrow">AI-POWERED BRAIN MRI ANALYSIS</div>
+                    <h1 class="hero-serif-title">
+                        When you need clarity,<br>
+                        start with the scan.
+                    </h1>
+                    <p class="hero-description">
+                        BrainVerse uses deep learning to classify brain MRI scans across four diagnostic categories, providing rapid AI-assisted analysis for research and educational use.
+                    </p>
+                    <div class="hero-btn-group">
+                        <a href="#analyze" class="btn btn-pill-primary btn-large">Analyze an MRI &rarr;</a>
+                        <a href="#technology" class="btn btn-pill-outline btn-large">Explore the Technology</a>
+                    </div>
+                </div>
+
+                <!-- Clean Slide Indicator Controls -->
+                <div class="hero-carousel-controls">
+                    <div class="carousel-dots-row" id="carouselDots">
+                        <button type="button" class="carousel-dot active" data-slide="0" aria-label="Go to slide 1"></button>
+                        <button type="button" class="carousel-dot" data-slide="1" aria-label="Go to slide 2"></button>
+                        <button type="button" class="carousel-dot" data-slide="2" aria-label="Go to slide 3"></button>
+                    </div>
+                    <span class="carousel-telemetry-tag" id="slideTelemetryTitle">PATIENT CONSULTATION &bull; INTAKE</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Action Strip: Directly below Hero (Identical to Mayo Clinic 3-Column Strip) -->
+        <section class="mayo-action-strip" aria-label="Action Navigation">
+            <div class="container">
+                <div class="action-strip-row">
+                    <a href="#analyze" class="action-strip-item">
+                        <span class="action-strip-text">Analyze an MRI</span>
+                        <span class="action-strip-arrow">&rarr;</span>
+                    </a>
+                    <a href="#how-it-works" class="action-strip-item">
+                        <span class="action-strip-text">How it works</span>
+                        <span class="action-strip-arrow">&rarr;</span>
+                    </a>
+                    <a href="#performance" class="action-strip-item">
+                        <span class="action-strip-text">Model performance</span>
+                        <span class="action-strip-arrow">&rarr;</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- "Why BrainVerse?" Section: Institutional Healthcare Section Layout -->
+        <section class="mayo-why-section" id="about">
+            <div class="container">
+                <div class="why-layout-grid">
+                    
+                    <!-- Left Column (approx 1/3): Title & Green Pill Button -->
+                    <div class="why-lead-column">
+                        <h2 class="why-serif-heading">Why BrainVerse?</h2>
+                        <a href="#technology" class="btn btn-pill-primary">Explore the technology</a>
+                    </div>
+
+                    <!-- Right Column (approx 2/3): 2x2 Feature Grid with Minimal Line Icons -->
+                    <div class="why-features-grid">
+                        
+                        <!-- Feature 1 -->
+                        <div class="why-feature-block">
+                            <div class="why-icon-wrap">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="4" width="16" height="16" rx="2" />
+                                    <rect x="9" y="9" width="6" height="6" />
+                                    <line x1="9" y1="1" x2="9" y2="4" />
+                                    <line x1="15" y1="1" x2="15" y2="4" />
+                                    <line x1="9" y1="20" x2="9" y2="23" />
+                                    <line x1="15" y1="20" x2="15" y2="23" />
+                                    <line x1="20" y1="9" x2="23" y2="9" />
+                                    <line x1="20" y1="14" x2="23" y2="14" />
+                                    <line x1="1" y1="9" x2="4" y2="9" />
+                                    <line x1="1" y1="14" x2="4" y2="14" />
                                 </svg>
                             </div>
-                            <p class="upload-label">Drop your MRI scan here</p>
-                            <p class="upload-sublabel">or click to browse files</p>
-                            <p class="upload-formats">Supported: JPG, JPEG, PNG</p>
+                            <h3 class="why-feature-title">AI-Powered Analysis</h3>
+                            <p class="why-feature-text">
+                                Uses a DenseNet121 deep learning model implemented with MONAI and PyTorch.
+                            </p>
                         </div>
-                        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png" hidden>
 
-                        <!-- Image preview (shown after selection) -->
-                        <div class="preview-wrap" id="previewWrap" style="display:none">
-                            <img id="previewImg" alt="MRI Preview">
-                            <div class="preview-overlay">
-                                <span class="preview-filename" id="previewFilename"></span>
-                                <button class="change-btn" id="changeBtn">Change Image</button>
+                        <!-- Feature 2 -->
+                        <div class="why-feature-block">
+                            <div class="why-icon-wrap">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                    <line x1="16" y1="13" x2="8" y2="13" />
+                                    <line x1="16" y1="17" x2="8" y2="17" />
+                                    <polyline points="10 9 9 9 8 9" />
+                                </svg>
+                            </div>
+                            <h3 class="why-feature-title">Four-Class Classification</h3>
+                            <p class="why-feature-text">
+                                Classifies MRI scans into glioma, meningioma, pituitary tumor, and no tumor.
+                            </p>
+                        </div>
+
+                        <!-- Feature 3 -->
+                        <div class="why-feature-block">
+                            <div class="why-icon-wrap">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 20V10" />
+                                    <path d="M18 20V4" />
+                                    <path d="M6 20v-4" />
+                                </svg>
+                            </div>
+                            <h3 class="why-feature-title">Transparent Results</h3>
+                            <p class="why-feature-text">
+                                Displays confidence scores and probability distributions across every class.
+                            </p>
+                        </div>
+
+                        <!-- Feature 4 -->
+                        <div class="why-feature-block">
+                            <div class="why-icon-wrap">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                    <path d="m9 12 2 2 4-4" />
+                                </svg>
+                            </div>
+                            <h3 class="why-feature-title">Research Focused</h3>
+                            <p class="why-feature-text">
+                                Designed as an educational and research-oriented AI system and not as a replacement for professional diagnosis.
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analyze Brain MRI Section: Main Workbench & Inference Engine -->
+        <section class="editorial-panel bg-light-panel" id="analyze">
+            <div class="container">
+                <div class="section-heading-group">
+                    <span class="sub-eyebrow">CLINICAL WORKBENCH</span>
+                    <h2 class="serif-section-title">Analyze a brain MRI</h2>
+                    <p class="section-lead-paragraph">
+                        Upload a brain MRI scan to receive an AI-generated classification across four diagnostic categories.
+                    </p>
+                </div>
+
+                <!-- Two-Column Workbench Layout -->
+                <div class="workbench-grid">
+                    
+                    <!-- Left: Upload & Prediction Card -->
+                    <div class="clinical-card-white">
+                        
+                        <!-- Upload Dropzone -->
+                        <div class="mri-dropzone" id="uploadZone" role="button" tabindex="0" aria-label="Dropzone for brain MRI scan image">
+                            
+                            <!-- Initial Upload Prompt -->
+                            <div class="dropzone-prompt-wrap" id="uploadIconWrap">
+                                <div class="dropzone-icon-circle">
+                                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <polyline points="17 8 12 3 7 8" />
+                                        <line x1="12" y1="3" x2="12" y2="15" />
+                                    </svg>
+                                </div>
+                                <h3 class="dropzone-title">Upload MRI Scan</h3>
+                                <p class="dropzone-subtitle">Drag and drop your MRI here</p>
+                                <span class="dropzone-divider-text">or</span>
+                                <button type="button" class="btn btn-pill-outline" id="browseBtn">Choose File</button>
+                                <p class="dropzone-spec-note">JPG / JPEG / PNG supported</p>
+                            </div>
+
+                            <input type="file" id="fileInput" accept=".jpg,.jpeg,.png" style="display: none;" aria-label="Upload MRI image file">
+
+                            <!-- Image Preview Card (shown upon selection) -->
+                            <div class="preview-card-wrap" id="previewWrap" style="display: none;">
+                                <div class="preview-img-frame">
+                                    <img id="previewImg" alt="Selected MRI scan" class="preview-img">
+                                </div>
+                                <div class="preview-toolbar">
+                                    <div class="preview-text-info">
+                                        <span class="preview-tag">SELECTED SCAN</span>
+                                        <span class="preview-filename-text" id="previewFilename">scan.jpg</span>
+                                    </div>
+                                    <button type="button" class="btn-text-action" id="changeBtn">Change Image</button>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Action Submit Button -->
+                        <div class="analyze-btn-row">
+                            <button class="btn btn-pill-primary btn-block btn-large" id="predictBtn" disabled>
+                                <span class="btn-text">Analyze MRI Scan &rarr;</span>
+                                <span class="btn-loader" id="btnLoader" style="display: none;" aria-hidden="true"></span>
+                            </button>
+                        </div>
+
+                        <!-- Analysis Results Card (Clean Clinical Medical Report) -->
+                        <div class="clinical-report-card" id="resultCard" style="display: none;">
+                            <div class="report-header-row">
+                                <div>
+                                    <span class="report-eyebrow">ANALYSIS RESULT</span>
+                                    <h3 class="report-heading">Classification Assessment</h3>
+                                </div>
+                                <div class="report-timestamp" id="resultTimestamp">--:--:--</div>
+                            </div>
+
+                            <!-- Primary Condition Banner -->
+                            <div class="diagnosis-lead-box">
+                                <div class="diagnosis-title-wrapper">
+                                    <span class="diagnosis-status-pill" id="predictionIcon">&bull;</span>
+                                    <div>
+                                        <span class="diagnosis-kicker">DETECTED CONDITION</span>
+                                        <h4 class="diagnosis-class-name" id="predictionValue">--</h4>
+                                    </div>
+                                </div>
+                                <div class="diagnosis-score-wrapper">
+                                    <span class="diagnosis-confidence-score" id="confidenceValue">--%</span>
+                                    <span class="diagnosis-confidence-caption">Model confidence</span>
+                                </div>
+                            </div>
+
+                            <!-- Overall Confidence Meter -->
+                            <div class="meter-block">
+                                <div class="meter-label-row">
+                                    <span>Confidence Indicator</span>
+                                </div>
+                                <div class="meter-track">
+                                    <div class="meter-fill" id="confidenceFill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Probability Distribution Across All Classes -->
+                            <div class="distribution-block">
+                                <h4 class="distribution-title">Class probabilities</h4>
+                                <div class="distribution-list" id="probList">
+                                    <!-- Dynamic class probability bars inserted via script.js -->
+                                </div>
+                            </div>
+
+                            <!-- File Reference -->
+                            <div class="report-file-footer">
+                                <span class="file-footer-label">MRI:</span>
+                                <span class="file-footer-name" id="resultFilename">--</span>
+                            </div>
+
+                            <!-- Integrated Clinical Disclaimer -->
+                            <div class="clinical-disclaimer-note">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="8" x2="12" y2="12" />
+                                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                                </svg>
+                                <span>
+                                    BrainVerse is intended for educational and research purposes only. AI-generated predictions are not medical diagnoses and should not replace evaluation by a qualified healthcare professional.
+                                </span>
+                            </div>
+
+                        </div>
+
                     </div>
 
-                    <!-- Predict button -->
-                    <button class="predict-btn" id="predictBtn" disabled>
-                        <span class="btn-icon">🔍</span>
-                        <span class="btn-text">Analyze MRI Scan</span>
-                        <div class="btn-loader" id="btnLoader" style="display:none"></div>
-                    </button>
+                    <!-- Right: Instructions & Clinical Protocol Guide -->
+                    <div class="clinical-card-white guidance-sidebar" id="protocol">
+                        <h3 class="guidance-heading">Scan Instructions &amp; Specifications</h3>
+                        <p class="guidance-intro">
+                            Adhere to standard neuro-imaging orientation protocols to ensure accurate feature representation:
+                        </p>
+
+                        <div class="protocol-item">
+                            <span class="protocol-index">01</span>
+                            <div>
+                                <h4 class="protocol-item-title">Supported Image Types</h4>
+                                <p class="protocol-item-body">
+                                    Standard 2D MRI slices in JPEG, JPG, or PNG formats. Both contrast-enhanced T1-weighted and T2-FLAIR axial views are supported.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="protocol-item">
+                            <span class="protocol-index">02</span>
+                            <div>
+                                <h4 class="protocol-item-title">Input Transformation</h4>
+                                <p class="protocol-item-body">
+                                    Scans are preprocessed to 224 &times; 224 resolution and converted to single-channel luminance grayscale prior to tensor ingestion.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="protocol-item">
+                            <span class="protocol-index">03</span>
+                            <div>
+                                <h4 class="protocol-item-title">Diagnostic Classes</h4>
+                                <p class="protocol-item-body">
+                                    Evaluated against four diagnostic classifications: <strong>Glioma</strong>, <strong>Meningioma</strong>, <strong>Pituitary Tumor</strong>, and <strong>No Tumor</strong>.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="protocol-callout-box">
+                            <h4 class="protocol-callout-title">Research Advisory</h4>
+                            <p class="protocol-callout-text">
+                                Model outputs are probabilistic predictions derived from validation datasets and should be interpreted strictly in academic and investigative contexts.
+                            </p>
+                        </div>
+                    </div>
 
                 </div>
             </div>
+        </section>
 
-            <!-- Result Card (shown after prediction) -->
-            <div class="card result-card" id="resultCard" style="display:none">
-
-                <div class="result-header">
-                    <h2 class="result-title">Analysis Complete</h2>
-                    <span class="result-timestamp" id="resultTimestamp"></span>
+        <!-- Model Technology Section: Built on modern medical AI -->
+        <section class="editorial-panel" id="technology">
+            <div class="container">
+                <div class="section-heading-group">
+                    <span class="sub-eyebrow">ENGINEERING &amp; DEEP LEARNING</span>
+                    <h2 class="serif-section-title">Built on modern medical AI</h2>
+                    <p class="section-lead-paragraph">
+                        An end-to-end medical deep learning pipeline utilizing domain-specific biomedical computer vision frameworks.
+                    </p>
                 </div>
 
-                <!-- Main prediction -->
-                <div class="prediction-main" id="predictionMain">
-                    <div class="prediction-icon" id="predictionIcon"></div>
-                    <div class="prediction-info">
-                        <div class="prediction-label">Detected Condition</div>
-                        <div class="prediction-value" id="predictionValue"></div>
+                <!-- Clean Architecture Visualization -->
+                <div class="architecture-flow-wrapper">
+                    <h3 class="flow-header-title">Architecture Pipeline</h3>
+                    <div class="flow-steps-track">
+                        
+                        <div class="flow-node">
+                            <span class="flow-node-step">INPUT</span>
+                            <div class="flow-node-title">MRI Scan</div>
+                            <span class="flow-node-desc">2D slice image</span>
+                        </div>
+                        <div class="flow-arrow">&rarr;</div>
+
+                        <div class="flow-node">
+                            <span class="flow-node-step">STAGE 1</span>
+                            <div class="flow-node-title">Preprocessing</div>
+                            <span class="flow-node-desc">Resize &amp; Grayscale</span>
+                        </div>
+                        <div class="flow-arrow">&rarr;</div>
+
+                        <div class="flow-node">
+                            <span class="flow-node-step">STAGE 2</span>
+                            <div class="flow-node-title">224 &times; 224 Tensor</div>
+                            <span class="flow-node-desc">Intensity scaled [0, 1]</span>
+                        </div>
+                        <div class="flow-arrow">&rarr;</div>
+
+                        <div class="flow-node flow-core">
+                            <span class="flow-node-step">CORE MODEL</span>
+                            <div class="flow-node-title">DenseNet121</div>
+                            <span class="flow-node-desc">MONAI Medical CNN</span>
+                        </div>
+                        <div class="flow-arrow">&rarr;</div>
+
+                        <div class="flow-node">
+                            <span class="flow-node-step">STAGE 3</span>
+                            <div class="flow-node-title">Softmax</div>
+                            <span class="flow-node-desc">Logit Normalization</span>
+                        </div>
+                        <div class="flow-arrow">&rarr;</div>
+
+                        <div class="flow-node">
+                            <span class="flow-node-step">OUTPUT</span>
+                            <div class="flow-node-title">4-Class Prediction</div>
+                            <span class="flow-node-desc">Confidence &amp; Distribution</span>
+                        </div>
+
                     </div>
-                    <div class="confidence-wrap">
-                        <div class="confidence-label">Confidence</div>
-                        <div class="confidence-value" id="confidenceValue"></div>
+                </div>
+
+                <!-- 4 Tech Framework Blocks -->
+                <div class="tech-cards-grid">
+                    <div class="tech-card">
+                        <span class="tech-card-kicker">CNN ARCHITECTURE</span>
+                        <h3 class="tech-card-title">DenseNet121</h3>
+                        <p class="tech-card-text">
+                            Densely connected convolutional networks connect all layers directly, promoting feature reuse, strengthening gradient flow, and minimizing parameter count.
+                        </p>
+                    </div>
+
+                    <div class="tech-card">
+                        <span class="tech-card-kicker">HEALTHCARE ML</span>
+                        <h3 class="tech-card-title">MONAI</h3>
+                        <p class="tech-card-text">
+                            Medical Open Network for AI provides domain-optimized architectures, medical imaging datasets, and robust transformations for healthcare diagnostics.
+                        </p>
+                    </div>
+
+                    <div class="tech-card">
+                        <span class="tech-card-kicker">COMPUTE ENGINE</span>
+                        <h3 class="tech-card-title">PyTorch</h3>
+                        <p class="tech-card-text">
+                            Industry-standard accelerated computational backend executing GPU-accelerated tensor operations or fast CPU fallback inference.
+                        </p>
+                    </div>
+
+                    <div class="tech-card">
+                        <span class="tech-card-kicker">REST MICROSERVICE</span>
+                        <h3 class="tech-card-title">FastAPI</h3>
+                        <p class="tech-card-text">
+                            Modern ASGI microservice managing model singleton lifecycle, multipart payload handling, and sub-second REST prediction execution.
+                        </p>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <!-- Confidence bar -->
-                <div class="confidence-bar-wrap">
-                    <div class="confidence-bar-track">
-                        <div class="confidence-bar-fill" id="confidenceFill"></div>
+        <!-- Model Performance Section: Verified Metrics on 1,600 Test Scans -->
+        <section class="editorial-panel bg-light-panel" id="performance">
+            <div class="container">
+                <div class="section-heading-group">
+                    <span class="sub-eyebrow">EMPIRICAL BENCHMARKS</span>
+                    <h2 class="serif-section-title">Model Performance</h2>
+                    <p class="section-lead-paragraph">
+                        Rigorously evaluated on 1,600 previously unseen test images, with 400 scans per diagnostic category.
+                    </p>
+                </div>
+
+                <!-- Editorial Metric Blocks -->
+                <div class="metrics-grid">
+                    <div class="metric-card metric-card-lead">
+                        <span class="metric-eyebrow">OVERALL TEST ACCURACY</span>
+                        <div class="metric-huge-number">87.38%</div>
+                        <p class="metric-subtext">Across 1,600 unseen test MRI images</p>
+                    </div>
+
+                    <div class="metric-card">
+                        <span class="metric-eyebrow">NO TUMOR</span>
+                        <div class="metric-huge-number">99.75%</div>
+                        <p class="metric-subtext">399 of 400 scans correctly identified</p>
+                    </div>
+
+                    <div class="metric-card">
+                        <span class="metric-eyebrow">PITUITARY TUMOR</span>
+                        <div class="metric-huge-number">99.00%</div>
+                        <p class="metric-subtext">396 of 400 scans correctly identified</p>
+                    </div>
+
+                    <div class="metric-card">
+                        <span class="metric-eyebrow">MENINGIOMA</span>
+                        <div class="metric-huge-number">83.25%</div>
+                        <p class="metric-subtext">333 of 400 scans correctly identified</p>
+                    </div>
+
+                    <div class="metric-card">
+                        <span class="metric-eyebrow">GLIOMA</span>
+                        <div class="metric-huge-number">67.50%</div>
+                        <p class="metric-subtext">270 of 400 scans correctly identified</p>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <!-- All class probabilities -->
-                <div class="probabilities">
-                    <h3 class="prob-title">All Class Probabilities</h3>
-                    <div class="prob-list" id="probList"></div>
+        <!-- How It Works Section: 4-Step Process -->
+        <section class="editorial-panel" id="how-it-works">
+            <div class="container">
+                <div class="section-heading-group">
+                    <span class="sub-eyebrow">STANDARDIZED WORKFLOW</span>
+                    <h2 class="serif-section-title">How It Works</h2>
+                    <p class="section-lead-paragraph">
+                        A transparent 4-stage pipeline translating medical imagery into actionable probability distributions.
+                    </p>
                 </div>
 
-                <!-- Disclaimer -->
-                <div class="disclaimer">
-                    ⚠️ <strong>Educational use only.</strong> This AI prediction is not a medical diagnosis. Always consult a qualified medical professional.
-                </div>
+                <div class="steps-editorial-grid">
+                    <div class="step-card">
+                        <div class="step-num">01</div>
+                        <h3 class="step-heading">Upload MRI</h3>
+                        <p class="step-body">Select a supported brain MRI image.</p>
+                    </div>
 
+                    <div class="step-card">
+                        <div class="step-num">02</div>
+                        <h3 class="step-heading">Preprocess</h3>
+                        <p class="step-body">The image is resized and converted to grayscale before inference.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-num">03</div>
+                        <h3 class="step-heading">AI Analysis</h3>
+                        <p class="step-body">DenseNet121 processes the scan and calculates class probabilities.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-num">04</div>
+                        <h3 class="step-heading">View Results</h3>
+                        <p class="step-body">The predicted class and probability distribution are presented.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Medical Disclaimer Banner -->
+        <section class="advisory-strip">
+            <div class="container">
+                <div class="advisory-box">
+                    <span class="advisory-label">CLINICAL ADVISORY</span>
+                    <p class="advisory-text">
+                        BrainVerse is intended for educational and research purposes only. AI-generated predictions are not medical diagnoses and should not replace evaluation by a qualified healthcare professional.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Institutional Footer (Clinical Footer) -->
+    <footer class="mayo-footer">
+        <div class="container footer-main-content">
+            <div class="footer-identity-col">
+                <div class="footer-brand">
+                    <img src="/static/assets/04.png" alt="BrainVerse Logo" class="footer-logo-img">
+                    <span class="brand-title">BRAIN<span class="brand-title-accent">VERSE</span></span>
+                </div>
+                <p class="footer-tagline-text">
+                    AI-assisted brain MRI classification for research and education.
+                </p>
             </div>
 
-            <!-- Info cards -->
-            <div class="info-grid">
-                <div class="info-card">
-                    <div class="info-icon">🎯</div>
-                    <div class="info-title">4 Classes</div>
-                    <div class="info-desc">Glioma, Meningioma, Pituitary, No Tumor</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-icon">📊</div>
-                    <div class="info-title">87.38% Accuracy</div>
-                    <div class="info-desc">Tested on 1,600 MRI images</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-icon">⚡</div>
-                    <div class="info-title">Real-time</div>
-                    <div class="info-desc">Instant predictions locally on your machine</div>
-                </div>
+            <div class="footer-nav-col">
+                <h4 class="footer-menu-header">Navigation</h4>
+                <ul class="footer-links-list">
+                    <li><a href="#about">About BrainVerse</a></li>
+                    <li><a href="#technology">Technology</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#performance">Research</a></li>
+                    <li><a href="#analyze">Analyze MRI</a></li>
+                </ul>
             </div>
 
-        </main>
+            <div class="footer-nav-col">
+                <h4 class="footer-menu-header">Medical AI Specs</h4>
+                <ul class="footer-links-list">
+                    <li><span>Architecture: DenseNet121</span></li>
+                    <li><span>Framework: MONAI + PyTorch</span></li>
+                    <li><span>Resolution: 224 &times; 224 Grayscale</span></li>
+                    <li><a href="/docs" target="_blank" rel="noopener">Interactive API Documentation &rarr;</a></li>
+                </ul>
+            </div>
+        </div>
 
-        <footer class="footer">
-            <p>Built with ❤️ using MONAI + PyTorch + FastAPI &nbsp;|&nbsp; Educational Project</p>
-        </footer>
+        <div class="container footer-sub-bar">
+            <p>&copy; 2026 BrainVerse</p>
+            <p class="footer-policy-note">Research &amp; Educational Medical Application</p>
+        </div>
+    </footer>
 
+    <!-- Clinical Portal Sign In Modal -->
+    <div class="modal-backdrop" id="signInModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display: none;">
+        <div class="modal-card">
+            <button class="modal-close-btn" id="closeSignInModal" aria-label="Close dialog">&times;</button>
+            <div class="modal-header">
+                <div class="modal-brand-badge">
+                    <img src="/static/assets/04.png" alt="BrainVerse Logo" class="modal-logo-img">
+                    <span>BRAIN<span class="brand-title-accent">VERSE</span></span>
+                </div>
+                <h3 class="modal-title" id="modalTitle">Clinical Portal Access</h3>
+                <p class="modal-subtitle">Sign in to your clinical research account or authenticate diagnostic session.</p>
+            </div>
+            <form class="modal-form" id="signInForm">
+                <div class="modal-form-group">
+                    <label for="modalEmail" class="modal-label">Clinician ID / Work Email</label>
+                    <input type="email" id="modalEmail" class="modal-input" placeholder="clinician@hospital.org" value="researcher@brainverse.org" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="modalPassword" class="modal-label">Security Key / Password</label>
+                    <input type="password" id="modalPassword" class="modal-input" placeholder="••••••••••••" value="demo12345" required>
+                </div>
+                <div class="modal-remember-row">
+                    <label class="modal-check-label">
+                        <input type="checkbox" checked> Keep session authenticated
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-pill-primary btn-block">Sign In &amp; Continue &rarr;</button>
+            </form>
+            <div class="modal-footer">
+                <span class="modal-footnote">🔒 HIPAA &amp; GDPR Research Protocol Compliant</span>
+            </div>
+        </div>
     </div>
 
     <script src="/static/script.js"></script>

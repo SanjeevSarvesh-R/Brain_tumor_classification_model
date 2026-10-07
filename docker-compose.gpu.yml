@@ -1,0 +1,31 @@
+# ============================================================
+# BrainVerse — GPU-enabled override (NVIDIA RTX 3050)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.gpu.yml up
+# ============================================================
+#
+# Prerequisites on the HOST (not inside Docker):
+#   1. NVIDIA driver installed and working  (nvidia-smi should succeed)
+#   2. nvidia-container-toolkit installed:
+#        sudo apt-get install -y nvidia-container-toolkit
+#        sudo systemctl restart docker
+#   3. NVIDIA runtime registered:
+#        docker info | grep -i runtime   # should show "nvidia"
+#
+services:
+  brainverse:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    image: brainverse:gpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - PYTHONUNBUFFERED=1
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+

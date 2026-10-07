@@ -1,0 +1,58 @@
+# ============================================================
+# BrainVerse — GPU Dockerfile
+# Uses NVIDIA CUDA base image instead of plain python:3.12-slim
+# Only used when running docker-compose.gpu.yml
+# ============================================================
+
+# CUDA 12.1 + cuDNN8 on Ubuntu 22.04 – matches PyTorch 2.14 CUDA 12.1 wheels
+FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+
+LABEL maintainer="BrainVerse"
+LABEL description="BrainVerse Brain MRI Tumor Classifier – GPU build"
+
+# ---------- system deps ------------------------------------------------------
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3.12 \
+        python3.12-venv \
+        python3-pip \
+        libgomp1 \
+        libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -sf /usr/bin/python3.12 /usr/local/bin/python \
+    && ln -sf /usr/bin/python3.12 /usr/local/bin/python3
+
+# ---------- working directory -------------------------------------------------
+WORKDIR /app
+
+COPY requirements.txt .
+
+# Install GPU-enabled PyTorch wheels (CUDA 12.1)
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir \
+        torch==2.14.1 torchvision==0.29.1 \
+        --index-url https://download.pytorch.org/whl/cu121 && \
+    pip install --no-cache-dir \
+        fastapi==0.142.2 \
+        uvicorn==0.54.0 \
+        starlette==1.7.0 \
+        python-multipart==0.0.32 \
+        Pillow==12.3.0 \
+        numpy==2.5.3 \
+        monai==1.6.1 \
+        scikit-learn==1.9.1
+
+# ---------- copy application source ------------------------------------------
+COPY model.py .
+COPY backend/ ./backend/
+COPY frontend/ ./frontend/
+COPY assets/ ./assets/
+COPY best_brain_tumor_monai.pth .
+
+# ---------- runtime config ---------------------------------------------------
+EXPOSE 8000
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+

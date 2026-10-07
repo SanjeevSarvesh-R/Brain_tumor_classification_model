@@ -1,0 +1,45 @@
+# Python bytecode & caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Training data (large; not needed at inference time)
+Training/
+Testing/
+*.zip
+*.tar.gz
+
+# IDE / OS artefacts
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Scratch / dev-only scripts
+midem.py
+evaluate.py
+train.py
+predict.py
+new.py
+test1.py
+test_model.py
+
+# Git metadata (already excluded by Docker, but explicit here for clarity)
+.git/
+.gitignore
+
+# Notebook artefacts
+*.ipynb_checkpoints
+
+# Docker build artefacts (excluded to avoid recursive sends)
+*.tar
+

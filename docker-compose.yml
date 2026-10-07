@@ -1,0 +1,25 @@
+services:
+  brainverse:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: brainverse-app
+    image: brainverse:latest
+    ports:
+      - "8000:8000"         # Host port 8000 → Container port 8000
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Optional: mount model weights from host so you can swap them
+      # without rebuilding the image. Comment out if you prefer the
+      # weights to be baked into the image (default).
+      - ./best_brain_tumor_monai.pth:/app/best_brain_tumor_monai.pth:ro
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s   # Give model loading time (~30-60s on CPU)
+
