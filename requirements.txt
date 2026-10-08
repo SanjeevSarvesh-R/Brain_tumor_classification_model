@@ -14,3 +14,8 @@ python-multipart==0.0.32
 
 # Utilities
 tqdm==4.70.1
+
+# MLOps & Experiment Tracking (local)
+mlflow==3.17.0
+dvc==3.67.1
+matplotlib==3.11.2

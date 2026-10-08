@@ -38,6 +38,13 @@ The application pairs a high-performance **FastAPI** backend with a responsive h
 - [Model Training & Evaluation](#-model-training--evaluation)
   - [Benchmark Results](#benchmark-results)
   - [Training Hyperparameters](#training-hyperparameters)
+- [MLOps & Experiment Tracking (DVC & MLflow)](#-mlops--experiment-tracking-dvc--mlflow)
+  - [1. MLOps Architecture & Lineage Flow](#1-mlops-architecture--lineage-flow)
+  - [2. Data & Model Versioning with DVC](#2-data--model-versioning-with-dvc)
+  - [3. Reproducible Pipeline (dvc.yaml)](#3-reproducible-pipeline-dvcyaml)
+  - [4. Local Experiment Tracking with MLflow](#4-local-experiment-tracking-with-mlflow)
+  - [5. Visualizing & Comparing in MLflow UI](#5-visualizing--comparing-in-mlflow-ui)
+  - [6. End-to-End Reproducibility Guide](#6-end-to-end-reproducibility-guide)
 - [Clinical Advisory & Disclaimer](#-clinical-advisory--disclaimer)
 
 ---
@@ -233,19 +240,29 @@ Brain_tumor_classification_model/
 │   └── 06.png                      # UI Screenshot: Diagnostic Workspace & Results
 │
 ├── model.py                        # DenseNet121 architecture & inference preprocessing
-├── train.py                        # MONAI training pipeline script
-├── evaluate.py                     # Metric evaluation & confusion matrix generator
+├── train.py                        # MONAI training pipeline script (integrated with MLflow)
+├── evaluate.py                     # Metric evaluation, confusion matrix & MLflow tracking
 ├── predict.py                      # Standalone command-line inference script
-├── best_brain_tumor_monai.pth      # Serialized PyTorch model weights (28 MB)
+├── best_brain_tumor_monai.pth      # PyTorch model weights (tracked via DVC cache)
+│
+├── dvc.yaml                        # DVC pipeline stages definition (train & evaluate)
+├── dvc.lock                        # DVC reproducible pipeline lockfile with asset hashes
+├── Training.dvc                    # DVC dataset tracking pointer for Training/
+├── Testing.dvc                     # DVC dataset tracking pointer for Testing/
+├── metrics.json                    # Machine-readable evaluation metrics (DVC metric)
+├── confusion_matrix.png            # Visual confusion matrix plot (DVC & MLflow artifact)
+├── mlruns/                         # Local MLflow file tracking backend (experiments/runs)
+├── dvc-storage/                    # Local DVC remote storage directory
 │
 ├── Dockerfile                      # Production CPU Docker container specification
 ├── Dockerfile.gpu                  # GPU-accelerated container specification (CUDA 12.1)
 ├── docker-compose.yml              # Standard Docker Compose orchestration
 ├── docker-compose.gpu.yml          # NVIDIA GPU override orchestration
 ├── .dockerignore                   # Build context exclusions (venv, datasets, cache)
-├── requirements.txt                # Pinned Python package dependencies
+├── requirements.txt                # Pinned dependencies (including MLflow & DVC)
 └── README.md                       # Comprehensive platform documentation
 ```
+
 
 ---
 
@@ -383,18 +400,30 @@ docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 
 The model was rigorously benchmarked on an independent held-out test cohort of **1,600 MRI images** (400 balanced scans per category):
 
-- **Overall Test Accuracy**: **87.38%**
+- **Overall Test Accuracy**: **93.94%** (1,503 / 1,600 correct predictions)
+- **Macro Precision**: **0.9398** | **Macro Recall**: **0.9394** | **Macro F1-Score**: **0.9390**
 
-| Diagnostic Class | Precision | Recall | F1-Score | Per-Class Accuracy |
-|---|:---:|:---:|:---:|:---:|
-| **Glioma** | 0.88 | 0.68 | 0.76 | **67.50%** |
-| **Meningioma** | 0.77 | 0.83 | 0.80 | **83.25%** |
-| **Pituitary Tumor** | 0.93 | 0.99 | 0.96 | **99.00%** |
-| **No Tumor** | 0.94 | 1.00 | 0.97 | **99.75%** |
+| Diagnostic Class | Precision | Recall | F1-Score | Per-Class Accuracy | Correct / Total |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **Glioma** | 0.9005 | 0.8825 | 0.8914 | **88.25%** | 353 / 400 |
+| **Meningioma** | 0.9450 | 0.9025 | 0.9233 | **90.25%** | 361 / 400 |
+| **Pituitary Tumor** | 0.9898 | 0.9725 | 0.9811 | **97.25%** | 389 / 400 |
+| **No Tumor** | 0.9238 | 1.0000 | 0.9604 | **100.00%** | 400 / 400 |
+
+#### Confusion Matrix:
+
+```text
+Actual \ Predicted      glioma    meningioma     pituitary       notumor
+glioma                     353            19             1            27
+meningioma                  30           361             3             6
+pituitary                    9             2           389             0
+notumor                      0             0             0           400
+```
 
 #### Clinical Interpretation:
-- Exceptional sensitivity on **No Tumor** (99.75%) and **Pituitary Tumor** (99.00%), virtually eliminating false negatives for healthy scans and sellar masses.
-- Glioma vs. Meningioma represents the primary morphological overlap due to shared signal intensities on non-contrast sequences, providing realistic diagnostic differentials.
+- **Zero False Negatives for Healthy Brain Scans**: The classifier achieved 100.00% recall on **No Tumor** (400/400 correctly identified), ensuring non-pathological scans are never erroneously identified as tumors.
+- **Superior Pituitary Accuracy**: 97.25% accuracy and 0.9811 F1-score for sellar/pituitary masses with clean differentiation from supratentorial lesions.
+- **Glioma vs. Meningioma Differential**: Meningioma achieved 90.25% accuracy and Glioma 88.25%, with the primary false positives mirroring the standard radiological differential on non-contrast imaging.
 
 ### Training Hyperparameters
 
@@ -414,6 +443,246 @@ python train.py
   - `RandFlipd` (prob = 0.5, spatial axis = 1)
   - `RandRotate90d` (prob = 0.5, max_k = 3)
   - `RandZoomd` (prob = 0.5, min_zoom = 0.9, max_zoom = 1.1)
+
+---
+
+## 🔄 MLOps & Experiment Tracking (DVC & MLflow)
+
+BrainVerse integrates a **local-first MLOps lifecycle** combining **DVC** (Data Version Control) for dataset and model weight versioning with **MLflow** for experiment tracking, parameter logging, metric visualization, and model registry artifacts.
+
+This setup guarantees **100% reproducibility** while keeping the production Docker deployment lightweight and decoupled.
+
+### 1. MLOps Architecture & Lineage Flow
+
+```mermaid
+flowchart TD
+    subgraph GitRepository["Git (Source & Metadata Tracking)"]
+        Source["Source Code\n(train.py, evaluate.py, model.py)"]
+        DVC_Meta["DVC Metadata\n(Training.dvc, Testing.dvc, dvc.yaml, dvc.lock)"]
+        MLflow_Cfg["MLflow Config\n(Tracking URI, Experiment Name)"]
+    end
+
+    subgraph DVCStorage["DVC (Asset & Checkpoint Versioning)"]
+        LocalRemote[("Local DVC Remote\n./dvc-storage/")]
+        DatasetVer["Dataset Versions\n(Training/ 5.4k images, Testing/ 1.6k images)"]
+        ModelVer["Model Checkpoints\n(best_brain_tumor_monai.pth 28 MB)"]
+    end
+
+    subgraph MLflowBackend["MLflow (Local Experiment Tracking)"]
+        FileStore[("FileStore Backend\n./mlruns/")]
+        ExpRuns["Experiment: BrainVerse-DenseNet121\n(Run IDs, Tags, Git Commit SHA)"]
+        HyperParams["Logged Hyperparameters\n(LR=1e-4, Batch=32, Epochs=10, DenseNet121)"]
+        MetricsLogged["Logged Metrics\n(train_loss, val_loss, test_acc=93.94%, F1)"]
+        ArtifactsLogged["Artifacts\n(metrics.json, confusion_matrix.png, PyTorch Model)"]
+    end
+
+    subgraph ProdDeploy["Production Deployment (Docker)"]
+        Container["FastAPI Docker Container\n(Lightweight, No MLflow/DVC Overhead)"]
+        InferenceWeights["Verified Model Weights\nbest_brain_tumor_monai.pth"]
+    end
+
+    Source -->|dvc repro| DVC_Meta
+    DatasetVer -->|Tracked by| DVC_Meta
+    ModelVer -->|Tracked by| DVC_Meta
+    DVC_Meta -->|dvc push / pull| LocalRemote
+
+    Source -->|mlflow.start_run| ExpRuns
+    ExpRuns --> HyperParams
+    ExpRuns --> MetricsLogged
+    ExpRuns --> ArtifactsLogged
+    FileStore --> ExpRuns
+
+    ModelVer -.->|COPY at build time| InferenceWeights
+    InferenceWeights --> Container
+```
+
+---
+
+### 2. Data & Model Versioning with DVC
+
+Git tracks code and light metadata, while **DVC** handles large MRI datasets and PyTorch `.pth` binary checkpoints without bloating Git history.
+
+#### Local DVC Remote Setup
+
+BrainVerse uses a dedicated local DVC remote storage directory:
+
+```bash
+# Initialize DVC within the repository
+dvc init
+
+# Create and configure the local remote storage
+mkdir -p dvc-storage
+dvc remote add -d local_storage ./dvc-storage
+```
+
+#### Tracking Datasets
+
+The raw training and testing directories are tracked with DVC pointers:
+
+```bash
+# Track datasets with DVC
+dvc add Training
+dvc add Testing
+
+# Commit DVC metadata to Git
+git add Training.dvc Testing.dvc .gitignore
+git commit -m "chore: track Training and Testing MRI datasets with DVC"
+```
+
+#### Everyday DVC Lifecycle Commands
+
+```bash
+# Push tracked data and model artifacts to local remote
+dvc push
+
+# Pull datasets/models on a fresh clone or new environment
+dvc pull
+
+# Synchronize working directory to currently checked-out Git commit
+dvc checkout
+
+# Inspect synchronization status of datasets and pipeline stages
+dvc status
+```
+
+---
+
+### 3. Reproducible Pipeline (`dvc.yaml`)
+
+The training and evaluation pipeline is defined declaratively in [`dvc.yaml`](dvc.yaml), enabling automated dependency checking and end-to-end reproducibility:
+
+```yaml
+stages:
+  train:
+    cmd: python train.py
+    deps:
+      - Training
+      - model.py
+      - train.py
+    outs:
+      - best_brain_tumor_monai.pth
+  evaluate:
+    cmd: python evaluate.py
+    deps:
+      - Testing
+      - best_brain_tumor_monai.pth
+      - evaluate.py
+      - model.py
+    metrics:
+      - metrics.json:
+          cache: false
+    plots:
+      - confusion_matrix.png:
+          cache: false
+```
+
+#### Reproducing Pipeline Stages
+
+```bash
+# Reproduce entire pipeline (re-trains and re-evaluates only if dependencies changed)
+dvc repro
+
+# Reproduce only the evaluation stage against current model weights
+dvc repro evaluate
+
+# View tabular metrics comparison
+dvc metrics show
+
+# View plot artifacts
+dvc plots show
+```
+
+The pipeline writes machine-readable evaluation results directly to [`metrics.json`](metrics.json) and generates a high-resolution confusion matrix plot at [`confusion_matrix.png`](confusion_matrix.png).
+
+---
+
+### 4. Local Experiment Tracking with MLflow
+
+Both [`train.py`](train.py) and [`evaluate.py`](evaluate.py) are instrumented with **MLflow** using a local file-based tracking store (`file:./mlruns`) under the unified experiment name **`BrainVerse-DenseNet121`**.
+
+#### Configuration
+
+In both scripts, tracking is configured automatically:
+
+```python
+import os
+import mlflow
+
+os.environ.setdefault("MLFLOW_ALLOW_FILE_STORE", "true")
+os.environ.setdefault("MLFLOW_DISABLE_AGENT_HINT", "1")
+
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "file:./mlruns")
+EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "BrainVerse-DenseNet121")
+
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+mlflow.set_experiment(EXPERIMENT_NAME)
+```
+
+#### What MLflow Logs
+
+| Category | Items Logged | Description |
+|---|---|---|
+| **Tags** | `git_commit`, `model_architecture`, `framework`, `stage` | Traceability back to exact Git commit SHA |
+| **Parameters** | `architecture`, `spatial_dims`, `in_channels`, `out_channels`, `learning_rate`, `batch_size`, `epochs`, `optimizer`, `loss_function`, `augmentations` | Exact hyperparameters for complete reproduction |
+| **Epoch Metrics** | `train_loss`, `train_accuracy`, `val_loss`, `val_accuracy` | Step-by-step training curves per epoch |
+| **Evaluation Metrics** | `test_accuracy`, `precision_macro`, `recall_macro`, `f1_macro`, per-class precision/recall/F1/accuracy | Standardized test cohort benchmark results |
+| **Artifacts** | `metrics.json`, `confusion_matrix.png`, `best_brain_tumor_monai.pth`, MLflow model flavor (`model/`) | Visual charts, structured JSON data, and model weights |
+
+---
+
+### 5. Visualizing & Comparing in MLflow UI
+
+Launch the local MLflow web dashboard to explore training runs, compare hyperparameter experiments, and inspect metric curves:
+
+```bash
+# Launch MLflow UI on localhost:5000
+mlflow ui --port 5000
+```
+
+Open **`http://127.0.0.1:5000`** in your browser to:
+
+1. **Compare Runs**: Select multiple training runs side-by-side to evaluate learning rates, batch sizes, and validation accuracy.
+2. **Interactive Curves**: Inspect interactive loss convergence and accuracy graphs across epochs.
+3. **Artifact Explorer**: Preview the generated `confusion_matrix.png`, download `metrics.json`, and inspect the serialized PyTorch model artifacts.
+4. **Git Lineage**: Click on the `git_commit` tag to correlate any model artifact with the exact source code revision that generated it.
+
+---
+
+### 6. End-to-End Reproducibility Guide
+
+The following table summarizes how each layer of BrainVerse maintains traceability:
+
+```text
+┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
+│   Git Commit    │ ----> │    DVC Data     │ ----> │   MLflow Run    │ ----> │  Docker Deploy  │
+│      Hash       │       │      Hash       │       │       ID        │       │    Container    │
+├─────────────────┤       ├─────────────────┤       ├─────────────────┤       ├─────────────────┤
+│ Tracks code and │       │ Locks exact MRI │       │ Records exact   │       │ Packages frozen │
+│ pipeline DAG in │       │ data versions & │       │ params, loss    │       │ weights into    │
+│ dvc.yaml        │       │ weights in lock │       │ curves, metrics │       │ production API  │
+└─────────────────┘       └─────────────────┘       └─────────────────┘       └─────────────────┘
+```
+
+#### Step-by-Step Reproduction Checklist
+
+```bash
+# 1. Clone the repository and checkout target commit
+git checkout <commit-hash>
+
+# 2. Pull dataset and model weights from local DVC storage
+dvc pull
+
+# 3. Reproduce evaluation or training pipeline
+dvc repro
+
+# 4. View results
+dvc metrics show
+mlflow ui --port 5000
+
+# 5. Build and launch production Docker container
+docker compose up -d --build
+```
+
 
 ---
 

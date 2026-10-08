@@ -1,0 +1,22 @@
+stages:
+  train:
+    cmd: python train.py
+    deps:
+      - Training
+      - model.py
+      - train.py
+    outs:
+      - best_brain_tumor_monai.pth
+  evaluate:
+    cmd: python evaluate.py
+    deps:
+      - Testing
+      - best_brain_tumor_monai.pth
+      - evaluate.py
+      - model.py
+    metrics:
+      - metrics.json:
+          cache: false
+    plots:
+      - confusion_matrix.png:
+          cache: false

@@ -1,7 +1,10 @@
 import os
-# pyrefly: ignore [missing-import]
+import subprocess
 import torch
 from tqdm import tqdm
+
+import mlflow
+import mlflow.pytorch
 
 from sklearn.model_selection import train_test_split
 
@@ -21,6 +24,29 @@ from monai.transforms import (
 from monai.networks.nets import DenseNet121
 
 
+# ------------------------------------------------------------
+# MLFLOW LOCAL TRACKING SETUP
+# ------------------------------------------------------------
+os.environ.setdefault("MLFLOW_ALLOW_FILE_STORE", "true")
+os.environ.setdefault("MLFLOW_DISABLE_AGENT_HINT", "1")
+
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "file:./mlruns")
+EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "BrainVerse-DenseNet121")
+
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+mlflow.set_experiment(EXPERIMENT_NAME)
+
+
+def get_git_commit():
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            stderr=subprocess.DEVNULL
+        ).decode("ascii").strip()
+    except Exception:
+        return "unknown"
+
+
 TRAIN_DIR = "Training"
 
 IMAGE_SIZE = (224, 224)
@@ -36,30 +62,31 @@ LEARNING_RATE = 0.0001
 RANDOM_STATE = 42
 
 
-if not torch.cuda.is_available():
-    raise RuntimeError(
-        "CUDA is not available. PyTorch cannot access your NVIDIA GPU. "
-        "Install a CUDA-enabled PyTorch version before training."
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+    print("=" * 60)
+    print("BRAIN TUMOR CLASSIFICATION - MONAI")
+    print("=" * 60)
+    print("PyTorch version:", torch.__version__)
+    print("CUDA available:", True)
+    print("CUDA version:", torch.version.cuda)
+    print("Device:", device)
+    print("GPU:", torch.cuda.get_device_name(0))
+    gpu_properties = torch.cuda.get_device_properties(0)
+    print(
+        f"GPU Memory: "
+        f"{gpu_properties.total_memory / (1024 ** 3):.2f} GB"
     )
+else:
+    device = torch.device("cpu")
+    print("=" * 60)
+    print("BRAIN TUMOR CLASSIFICATION - MONAI")
+    print("=" * 60)
+    print("PyTorch version:", torch.__version__)
+    print("CUDA available:", False)
+    print("Device:", device)
+    print("WARNING: CUDA is not available. Training will run on CPU.")
 
-device = torch.device("cuda")
-
-print("=" * 60)
-print("BRAIN TUMOR CLASSIFICATION - MONAI")
-print("=" * 60)
-
-print("PyTorch version:", torch.__version__)
-print("CUDA available:", torch.cuda.is_available())
-print("CUDA version:", torch.version.cuda)
-print("Device:", device)
-print("GPU:", torch.cuda.get_device_name(0))
-
-gpu_properties = torch.cuda.get_device_properties(0)
-
-print(
-    f"GPU Memory: "
-    f"{gpu_properties.total_memory / (1024 ** 3):.2f} GB"
-)
 
 
 classes = [
@@ -337,6 +364,40 @@ optimizer = torch.optim.Adam(
 best_validation_accuracy = 0.0
 
 
+# ------------------------------------------------------------
+# START MLFLOW RUN & LOG HYPERPARAMETERS
+# ------------------------------------------------------------
+run = mlflow.start_run(run_name="train_densenet121")
+mlflow.set_tag("git_commit", get_git_commit())
+mlflow.set_tag("model_architecture", "DenseNet121")
+mlflow.set_tag("framework", "PyTorch + MONAI")
+mlflow.set_tag("stage", "training")
+
+mlflow.log_param("architecture", "DenseNet121")
+mlflow.log_param("spatial_dims", 2)
+mlflow.log_param("in_channels", 1)
+mlflow.log_param("out_channels", NUM_CLASSES)
+mlflow.log_param("image_size", f"{IMAGE_SIZE[0]}x{IMAGE_SIZE[1]}")
+mlflow.log_param("batch_size", BATCH_SIZE)
+mlflow.log_param("epochs", EPOCHS)
+mlflow.log_param("learning_rate", LEARNING_RATE)
+mlflow.log_param("random_state", RANDOM_STATE)
+mlflow.log_param("val_split", 0.20)
+mlflow.log_param("optimizer", "Adam")
+mlflow.log_param("loss_function", "CrossEntropyLoss")
+mlflow.log_param("train_samples", len(train_data))
+mlflow.log_param("val_samples", len(validation_data))
+mlflow.log_param(
+    "augmentations",
+    "RandFlipd(prob=0.5, axis=1), RandRotate90d(prob=0.5, max_k=3), RandZoomd(prob=0.5, min=0.9, max=1.1)"
+)
+
+print("\nMLflow Run started:")
+print(f"Tracking URI : {MLFLOW_TRACKING_URI}")
+print(f"Experiment   : {EXPERIMENT_NAME}")
+print(f"Run ID       : {run.info.run_id}")
+
+
 print("\n")
 print("=" * 60)
 print("STARTING TRAINING")
@@ -344,6 +405,7 @@ print("=" * 60)
 
 
 for epoch in range(EPOCHS):
+
 
     model.train()
 
@@ -546,17 +608,20 @@ for epoch in range(EPOCHS):
         f"{validation_accuracy * 100:.2f}%"
     )
 
+    # Log metrics per epoch to MLflow
+    mlflow.log_metric("train_loss", float(average_train_loss), step=epoch + 1)
+    mlflow.log_metric("train_accuracy", float(train_accuracy), step=epoch + 1)
+    mlflow.log_metric("val_loss", float(average_validation_loss), step=epoch + 1)
+    mlflow.log_metric("val_accuracy", float(validation_accuracy), step=epoch + 1)
 
     if validation_accuracy > best_validation_accuracy:
 
         best_validation_accuracy = validation_accuracy
 
-
         torch.save(
             model.state_dict(),
             "best_brain_tumor_monai.pth"
         )
-
 
         print("Best model saved!")
 
@@ -566,13 +631,27 @@ print("=" * 60)
 print("TRAINING COMPLETE")
 print("=" * 60)
 
-
 print(
     f"Best Validation Accuracy: "
     f"{best_validation_accuracy * 100:.2f}%"
 )
 
-
 print("\nModel saved as:")
-
 print("best_brain_tumor_monai.pth")
+
+# ------------------------------------------------------------
+# LOG FINAL ARTIFACTS AND END MLFLOW RUN
+# ------------------------------------------------------------
+mlflow.log_metric("best_val_accuracy", float(best_validation_accuracy))
+
+if os.path.exists("best_brain_tumor_monai.pth"):
+    mlflow.log_artifact("best_brain_tumor_monai.pth")
+
+try:
+    mlflow.pytorch.log_model(model, artifact_path="model")
+    print("PyTorch model logged to MLflow.")
+except Exception as e:
+    print(f"Warning: Could not log PyTorch model to MLflow: {e}")
+
+mlflow.end_run()
+print("MLflow run completed.")

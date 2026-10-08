@@ -1,0 +1,52 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: python train.py
+    deps:
+    - path: Training
+      hash: md5
+      md5: 1598851650e915b9e3949c4c72e67d62.dir
+      size: 134063499
+      nfiles: 5600
+    - path: model.py
+      hash: md5
+      md5: 893d249162f8e609de09f840273b369f
+      size: 2570
+    - path: train.py
+      hash: md5
+      md5: f4aa593996e0ca37848723609bc03502
+      size: 12426
+    outs:
+    - path: best_brain_tumor_monai.pth
+      hash: md5
+      md5: c23e3ea1ba30c263f22391c6809dbc01
+      size: 28433988
+  evaluate:
+    cmd: python evaluate.py
+    deps:
+    - path: Testing
+      hash: md5
+      md5: f59ccefa2a1514a220568c879f05e078.dir
+      size: 33785458
+      nfiles: 1600
+    - path: best_brain_tumor_monai.pth
+      hash: md5
+      md5: c23e3ea1ba30c263f22391c6809dbc01
+      size: 28433988
+    - path: evaluate.py
+      hash: md5
+      md5: 41287cc407537230db4b45c7ebb6ed0c
+      size: 8924
+    - path: model.py
+      hash: md5
+      md5: 893d249162f8e609de09f840273b369f
+      size: 2570
+    outs:
+    - path: confusion_matrix.png
+      hash: md5
+      md5: 6074557a3cbc90544c42e01a0b7f1864
+      size: 63447
+    - path: metrics.json
+      hash: md5
+      md5: 8bf6a4d6508ba07f4dbdb194a5ccf838
+      size: 697

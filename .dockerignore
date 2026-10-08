@@ -43,3 +43,13 @@ test_model.py
 # Docker build artefacts (excluded to avoid recursive sends)
 *.tar
 
+# MLOps & Experiment Tracking (DVC & MLflow)
+.dvc/
+*.dvc
+dvc.yaml
+dvc.lock
+dvc-storage/
+mlruns/
+metrics/
+metrics.json
+confusion_matrix.png

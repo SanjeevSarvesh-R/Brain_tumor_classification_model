@@ -22,5 +22,7 @@ Thumbs.db
 # Scratch / unrelated files
 midem.py
 
-# (Optional: Uncomment below if you host model weights on GitHub Releases instead of git directly)
-# *.pth
+# Local DVC Remote Storage & MLflow Tracking Backend
+dvc-storage/
+mlruns/
+/best_brain_tumor_monai.pth
